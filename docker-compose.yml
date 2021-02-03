@@ -1,0 +1,17 @@
+# fast postgres setup
+
+version: '3'
+
+services:
+  meta-db:
+    image: postgres:latest
+    restart: unless-stopped
+    volumes:
+      - demo_db_volume:/var/lib/postgresql/data
+    env_file: ".env"
+    ports:
+      - $DB_PORT:5432
+
+volumes:
+  demo_db_volume: {}
+
