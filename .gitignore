@@ -1,12 +1,11 @@
 #exclude
 !.gitignore
 !.gitkeep
-!*.__init__.py
+!*__init__.py
+test.json
 
 #self
 .idea/
-*static/*
-*migrations/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

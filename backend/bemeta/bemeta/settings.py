@@ -11,13 +11,13 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 import os
+import logging
+
 from pathlib import Path
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-STATIC_ROOT = Path(BASE_DIR) / 'static/'
 
 env_path = Path(BASE_DIR.parent) / '.env'
 load_dotenv(dotenv_path=env_path)
@@ -128,4 +128,48 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
+STATIC_ROOT = Path(BASE_DIR).parent / 'static/'
 STATIC_URL = '/static/'
+
+# logging
+
+min_log_level = 'DEBUG' if DEBUG else os.environ.get('LOG_LEVEL', 'INFO')
+log_path = Path(BASE_DIR).parent / 'django.log'
+
+LOGGING = {
+    'version': 1,
+    'formatters': {
+        'short': {
+            'class': 'logging.Formatter',
+            'format': '%(asctime)s :: %(levelname)s > %(message)s',
+        },
+        'detailed': {
+            'class': 'logging.Formatter',
+            'format': '%(asctime)s :: <%(filename)s:%(lineno)s - %(funcName)s()>  %(levelname)s > %(message)s'
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': min_log_level,
+            'formatter': 'short'
+        },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'maxBytes': 10240000,
+            'backupCount': 5,
+            'filename': log_path,
+            'formatter': 'detailed',
+        },
+    },
+    'root': {
+        'level': min_log_level,
+        'handlers': ['console', 'file']
+    },
+}
+
+# app specific
+
+AIRTABLE_API_KEY = os.environ.get('AIRTABLE_API_KEY')
+AIRTABLE_BASE_ID = os.environ.get('AIRTABLE_BASE_ID')
+AIRTABLE_TABLE_NAME = os.environ.get('AIRTABLE_TABLE_NAME')
