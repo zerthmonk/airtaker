@@ -1,32 +1,69 @@
 from django.db import models
+from django.utils import timezone
 
 
-class TherapyMethod(models.Model):
+class SyncAble(models.Model):
+
+    """Abstract for keeping consistency between local DB and remote Airtable"""
+
+    class Meta:
+        abstract = True
+
+    id = models.CharField(max_length=128,
+                          primary_key=True)
+
+    @staticmethod
+    def cleanup_other_than(model, ids: list):
+        model.objects.exclude(pk__in=ids).delete()
+
+
+class AirData(models.Model):
+
+    """Airtable raw data"""
+
+    payload = models.JSONField()
+    timestamp = models.DateTimeField(default=timezone.now)
+
+
+class TherapyMethod(SyncAble):
 
     """Therapy method model"""
 
     class Meta:
-        verbose_name = 'Therapy method'
         verbose_name_plural = 'Therapy methods'
 
-    name = models.CharField(max_length=512, primary_key=True)
+    id = models.CharField(max_length=512, primary_key=True)
 
     def __str__(self):
-        return f'TherapyMethod <{self.name}>'
+        return f'TherapyMethod <{self.pk}>'
 
 
-class TherapistPerson(models.Model):
+class Photo(SyncAble):
+
+    """Photo image file"""
+
+    class Meta:
+        verbose_name_plural = 'Photos'
+
+    url = models.URLField()
+
+    def __str__(self):
+        return f'Photo <{self.id}> {self.url}'
+
+
+class Therapist(SyncAble):
 
     """Therapist person profile model"""
 
     class Meta:
-        verbose_name = 'Therapist'
-        verbose_name_plural = 'Therapists'
+        verbose_name = 'Therapist profile'
+        verbose_name_plural = 'Therapist profiles'
 
     name = models.CharField(max_length=512)
-    photo = models.FileField(upload_to='photos/')
+    photo = models.ForeignKey(Photo,
+                              blank=True,
+                              on_delete=models.CASCADE)
     methods = models.ManyToManyField(TherapyMethod)
 
     def __str__(self):
-        return f'TherapistPerson <{self.name}> {self.methods}'
-
+        return f'Therapist {self.name}'
