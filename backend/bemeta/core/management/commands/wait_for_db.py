@@ -12,9 +12,11 @@ class Command(BaseCommand):
         db_conn = None
         try:
             db_conn = connections['default']
+            db_conn.cursor()
         except OperationalError:
             self.stdout.write('Database unavailable, waiting 1 second...')
             time.sleep(1)
+
         if not db_conn:
             return self.handle(*args, **options)
         else:
