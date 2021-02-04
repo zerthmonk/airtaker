@@ -28,7 +28,7 @@ class AirBender(object):
         return models.AirData.objects.create(timestamp=self.timestamp,
                                              payload=self.payload)
 
-    def save(self):
+    def save(self) -> None:
         """Upsert records from fetched payload"""
         for item in self.parsed:
             photo = self.save_photo(item['photo'])
@@ -114,7 +114,7 @@ class AirBender(object):
         return obj
 
     @transaction.atomic
-    def cleanup_after_sync(self):
+    def cleanup_after_sync(self) -> None:
         """Cleanup local records not presented in remote Airtable"""
         try:
             models.Therapist.cleanup_other_than(model=models.Therapist,
