@@ -132,6 +132,3 @@ class AirBender(object):
 
     def __str__(self):
         return f'AirBender <{self.timestamp}>'
-
-
-
