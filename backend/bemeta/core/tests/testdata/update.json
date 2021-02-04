@@ -1,0 +1,18 @@
+[
+  {
+    "id": "rec59sIJUxkEHMLtT",
+    "fields": {
+      "Имя": "Жорж",
+      "Фотография": [
+        {
+          "id": "att9KnVSSmHaLWSCa",
+          "url": "https://dl.airtable.com/35.jpg"
+        }
+      ],
+      "Методы": [
+        "Сказкотерапия",
+        "Масс-спектрометрия"
+      ]
+    }
+  }
+]

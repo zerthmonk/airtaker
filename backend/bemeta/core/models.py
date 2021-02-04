@@ -12,8 +12,9 @@ class SyncAble(models.Model):
     id = models.CharField(max_length=128,
                           primary_key=True)
 
-    def cleanup_other_than(self, ids: list):
-        self.objects.exclude(pk__in=ids).delete()
+    @staticmethod
+    def cleanup_other_than(model, ids: list):
+        model.objects.exclude(pk__in=ids).delete()
 
 
 class RawData(models.Model):
@@ -33,8 +34,9 @@ class TherapyMethod(models.Model):
 
     id = models.CharField(max_length=512, primary_key=True)
 
-    def cleanup_other_than(self, names: list):
-        self.objects.exclude(pk__in=names).delete()
+    @staticmethod
+    def cleanup_other_than(model, names: list):
+        model.objects.exclude(pk__in=names).delete()
 
     def __str__(self):
         return f'TherapyMethod <{self.pk}>'

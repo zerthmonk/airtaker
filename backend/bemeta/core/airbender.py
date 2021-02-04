@@ -4,10 +4,12 @@ from typing import List
 from django.db import transaction
 
 from core import models
-from core.helpers import DotDict
+from core.helpers import DotDict, flatten_list
 
 
 class AirBender(object):
+
+    """Syncs local data with remote Airtable table"""
 
     field_names = DotDict(dict(
         name='Имя',
@@ -22,48 +24,13 @@ class AirBender(object):
 
     def save_raw(self) -> models.RawData:
         """Save raw data as string"""
-        logging.info(f'[SAVE RAW] at {self.timestamp}')
+        logging.info(f'SAVE RAW: at {self.timestamp}')
         return models.RawData.objects.create(timestamp=self.timestamp,
                                              payload=f'{self.payload}')
 
-    def parse_item(self, item: dict) -> dict:
-        """Parse payload item"""
-        try:
-            _id = item.get('id')
-            fields = item.get('fields', {})
-            photo_attrs = ['id', 'url']
-
-            name = fields.get(self.field_names.name, '')
-            photo = self.parse_photo(data=fields, field_list=photo_attrs)
-            methods = fields.get(self.field_names.methods, [])
-
-            result = {
-                'id': _id,
-                'name': name,
-                'photo': photo,
-                'methods': methods
-            }
-
-            for k, v in result.items():
-                if not v:
-                    raise ValueError(f'{k} is missing')
-
-            return result
-        except ValueError or Exception:
-            logging.exception(f'when parsing {item}: ')
-            return {}
-
-    def parse_photo(self, data: dict, field_list: list) -> dict:
-        """Parse photo data"""
-        photo_data = data.get(self.field_names.photo)
-        if isinstance(photo_data, list):
-            return {k: v for k, v in photo_data[0].items()
-                    if k in field_list}
-
-    def save_parsed(self):
+    def save(self):
         """Upsert records from fetched payload"""
         for item in self.parsed:
-
             photo = self.save_photo(item['photo'])
 
             params = {
@@ -80,8 +47,46 @@ class AirBender(object):
                 # record exists, updating
                 models.Therapist.objects.filter(id=obj.id).update(**params)
             # update methods anyway
-            person = self.update_methods(obj, item.get('methods'))
-            return person
+            self.update_methods(obj, item.get('methods'))
+        logging.info(f'SAVE PARSED: at {self.timestamp}')
+
+    def parse_item(self, item: dict) -> dict:
+        """Parse payload item"""
+        try:
+            _id = item.get('id')
+            if not _id:
+                raise AttributeError('DATA INCONSISTENCY: missing `id` field')
+            fields = item.get('fields')
+            if not fields:
+                raise AttributeError('DATA INCONSISTENCY: missing `fields` field')
+
+            photo_attrs = ['id', 'url']
+
+            name = fields.get(self.field_names.name)
+            photo = self.parse_photo(data=fields, field_list=photo_attrs)
+            methods = fields.get(self.field_names.methods)
+
+            result = {
+                'id': _id,
+                'name': name,
+                'photo': photo,
+                'methods': methods
+            }
+
+            for k, v in result.items():
+                if not v:
+                    raise AttributeError(f'{k} is missing')
+            return result
+        except AttributeError:
+            logging.exception(f'when parsing {item}: ')
+            return {}
+
+    def parse_photo(self, data: dict, field_list: list) -> dict:
+        """Parse photo data"""
+        photo_data = data.get(self.field_names.photo)
+        if isinstance(photo_data, list):
+            return {k: v for k, v in photo_data[0].items()
+                    if k in field_list}
 
     def update_methods(self, person: models.Therapist, methods: list) -> models.Therapist:
         """Update method list for person"""
@@ -107,9 +112,12 @@ class AirBender(object):
     def cleanup_after_sync(self):
         """Cleanup local records not presented in remote Airtable"""
         try:
-            models.Therapist.cleanup_other_than(ids=(item['id'] for item in self.parsed))
-            models.Photo.cleanup_other_than(ids=(item['photo']['id'] for item in self.parsed))
-            models.TherapyMethod.cleanup_other_than(names=set(item['methods'] for item in self.parsed))
+            models.Therapist.cleanup_other_than(model=models.Therapist,
+                                                ids=(item['id'] for item in self.parsed))
+            models.Photo.cleanup_other_than(model=models.Photo,
+                                            ids=(item['photo']['id'] for item in self.parsed))
+            models.TherapyMethod.cleanup_other_than(model=models.TherapyMethod,
+                                                    names=set(flatten_list(item['methods'] for item in self.parsed)))
         except Exception:
             logging.exception('when cleanup: ')
             raise
