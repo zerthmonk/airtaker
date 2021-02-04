@@ -66,4 +66,4 @@ class Therapist(SyncAble):
     methods = models.ManyToManyField(TherapyMethod)
 
     def __str__(self):
-        return f'Therapist <{self.id}> {self.name} {self.methods}>'
+        return f'Therapist {self.name}'
