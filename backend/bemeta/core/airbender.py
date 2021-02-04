@@ -124,7 +124,7 @@ class AirBender(object):
                                             ids=(item['photo']['id'] for item in self.parsed))
 
             models.TherapyMethod.cleanup_other_than(model=models.TherapyMethod,
-                                                    names=set(flatten_list(item['methods'] for item in self.parsed)))
+                                                    ids=set(flatten_list(item['methods'] for item in self.parsed)))
             logging.debug('sync cleanup complete')
         except Exception:
             logging.exception('when cleanup: ')

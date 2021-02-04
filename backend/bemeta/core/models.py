@@ -25,7 +25,7 @@ class AirData(models.Model):
     timestamp = models.DateTimeField(default=timezone.now)
 
 
-class TherapyMethod(models.Model):
+class TherapyMethod(SyncAble):
 
     """Therapy method model"""
 
@@ -33,10 +33,6 @@ class TherapyMethod(models.Model):
         verbose_name_plural = 'Therapy methods'
 
     id = models.CharField(max_length=512, primary_key=True)
-
-    @staticmethod
-    def cleanup_other_than(model, names: list):
-        model.objects.exclude(pk__in=names).delete()
 
     def __str__(self):
         return f'TherapyMethod <{self.pk}>'
