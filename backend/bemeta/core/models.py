@@ -17,11 +17,11 @@ class SyncAble(models.Model):
         model.objects.exclude(pk__in=ids).delete()
 
 
-class RawData(models.Model):
+class AirData(models.Model):
 
     """Airtable raw data"""
 
-    payload = models.TextField(default='')
+    payload = models.JSONField()
     timestamp = models.DateTimeField(default=timezone.now)
 
 

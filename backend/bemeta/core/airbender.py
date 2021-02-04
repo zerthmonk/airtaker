@@ -22,11 +22,11 @@ class AirBender(object):
         self.timestamp = timestamp
         self.parsed = [self.parse_item(item) for item in self.payload]
 
-    def save_raw(self) -> models.RawData:
+    def save_raw(self) -> models.AirData:
         """Save raw data as string"""
         logging.info(f'SAVE RAW: at {self.timestamp}')
-        return models.RawData.objects.create(timestamp=self.timestamp,
-                                             payload=f'{self.payload}')
+        return models.AirData.objects.create(timestamp=self.timestamp,
+                                             payload=self.payload)
 
     def save(self):
         """Upsert records from fetched payload"""
@@ -91,6 +91,7 @@ class AirBender(object):
     def update_methods(self, person: models.Therapist, methods: list) -> models.Therapist:
         """Update method list for person"""
         if methods:
+            logging.debug(f'{person} updates with method list: {methods}')
             methods = (self.save_method(name) for name in methods)  # populate db with presented methods
             person.methods.clear()  # clears M2M relationship with TherapyMethod set
             for obj in methods:
@@ -101,11 +102,15 @@ class AirBender(object):
     def save_photo(photo: dict) -> models.Photo:
         obj, created = models.Photo.objects.get_or_create(pk=photo['id'],
                                                           defaults={**photo})
+        if created:
+            logging.debug(f'new photo {photo}')
         return obj
 
     @staticmethod
     def save_method(method_name: str) -> models.TherapyMethod:
         obj, created = models.TherapyMethod.objects.get_or_create(pk=method_name)
+        if created:
+            logging.debug(f'new method {method_name}')
         return obj
 
     @transaction.atomic
@@ -114,10 +119,13 @@ class AirBender(object):
         try:
             models.Therapist.cleanup_other_than(model=models.Therapist,
                                                 ids=(item['id'] for item in self.parsed))
+
             models.Photo.cleanup_other_than(model=models.Photo,
                                             ids=(item['photo']['id'] for item in self.parsed))
+
             models.TherapyMethod.cleanup_other_than(model=models.TherapyMethod,
                                                     names=set(flatten_list(item['methods'] for item in self.parsed)))
+            logging.debug('sync cleanup complete')
         except Exception:
             logging.exception('when cleanup: ')
             raise
