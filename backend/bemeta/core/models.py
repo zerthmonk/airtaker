@@ -1,4 +1,27 @@
 from django.db import models
+from django.utils import timezone
+
+
+class SyncAble(models.Model):
+
+    """Abstract for keeping consistency between local DB and remote Airtable"""
+
+    class Meta:
+        abstract = True
+
+    id = models.CharField(max_length=128,
+                          primary_key=True)
+
+    def cleanup_other_than(self, ids: list):
+        self.objects.exclude(pk__in=ids).delete()
+
+
+class RawData(models.Model):
+
+    """Airtable raw data"""
+
+    payload = models.TextField(default='')
+    timestamp = models.DateTimeField(default=timezone.now)
 
 
 class TherapyMethod(models.Model):
@@ -6,27 +29,43 @@ class TherapyMethod(models.Model):
     """Therapy method model"""
 
     class Meta:
-        verbose_name = 'Therapy method'
         verbose_name_plural = 'Therapy methods'
 
-    name = models.CharField(max_length=512, primary_key=True)
+    id = models.CharField(max_length=512, primary_key=True)
+
+    def cleanup_other_than(self, names: list):
+        self.objects.exclude(pk__in=names).delete()
 
     def __str__(self):
-        return f'TherapyMethod <{self.name}>'
+        return f'TherapyMethod <{self.pk}>'
 
 
-class TherapistPerson(models.Model):
+class Photo(SyncAble):
+
+    """Photo image file"""
+
+    class Meta:
+        verbose_name_plural = 'Photos'
+
+    url = models.URLField()
+
+    def __str__(self):
+        return f'Photo <{self.id}> {self.url}'
+
+
+class Therapist(SyncAble):
 
     """Therapist person profile model"""
 
     class Meta:
-        verbose_name = 'Therapist'
-        verbose_name_plural = 'Therapists'
+        verbose_name = 'Therapist profile'
+        verbose_name_plural = 'Therapist profiles'
 
     name = models.CharField(max_length=512)
-    photo = models.FileField(upload_to='photos/')
+    photo = models.ForeignKey(Photo,
+                              blank=True,
+                              on_delete=models.CASCADE)
     methods = models.ManyToManyField(TherapyMethod)
 
     def __str__(self):
-        return f'TherapistPerson <{self.name}> {self.methods}'
-
+        return f'Therapist <{self.id}> {self.name} {self.methods}>'
