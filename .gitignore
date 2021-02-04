@@ -3,6 +3,7 @@
 !.gitkeep
 !__init__.py
 test.json
+backend/static/*
 
 #self
 .idea/
