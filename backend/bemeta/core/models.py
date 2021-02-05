@@ -65,5 +65,9 @@ class Therapist(SyncAble):
                               on_delete=models.CASCADE)
     methods = models.ManyToManyField(TherapyMethod)
 
+    @property
+    def method_names(self):
+        return sorted([m.pk for m in self.methods.all()])
+
     def __str__(self):
         return f'Therapist {self.name}'
