@@ -17,8 +17,8 @@
 (ну или сбилдить руками как написано в `frontend/README.md`, но я не пробовал)
 
 ---
-`./run-django.sh` запустит тестовый сервер (**внимание**: `host:port` прописан внизу скрипта)
-`pipenv run python ./backend/bemeta/manage.py sync_air` - скрипт для заполнения базы из таблицы Airtable
+- `./run-django.sh` запустит тестовый сервер (**внимание**: `host:port` прописан внизу скрипта)
+- `pipenv run python ./backend/bemeta/manage.py sync_air` - скрипт для заполнения базы из таблицы Airtable
 
 ##### почему Django:
 
