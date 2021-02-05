@@ -13,7 +13,7 @@ import axios from 'axios';
 import UserProfile from './components/UserProfile.vue';
 
 // .env for JS not mastered still
-const BACKEND_URL = 'http://127.0.0.1:8000/api/';
+const BACKEND_URL = 'http://127.0.0.1:8000/api';
 
 export default {
   components: {
@@ -27,8 +27,7 @@ export default {
   },
 
   mounted() {
-    this.testData();
-    console.log(this.userData);
+    this.getData();
   },
 
   methods: {
@@ -41,24 +40,7 @@ export default {
         .catch (errorMessage => {
           console.error(errorMessage);
         })
-      },
-
-    testData() {
-      const data = [
-        {
-          name: 'Dr. Siddhartha',
-          methods: ['test1', 'test2', 'test3'],
-          photo: 'https://tricycle.org/beginners/wp-content/uploads/sites/2/2018/11/siddhartha.jpg'
-        },
-        {
-          name: 'Dr. Siddhartha',
-          methods: ['test1', 'test2', 'test3'],
-          photo: 'https://tricycle.org/beginners/wp-content/uploads/sites/2/2018/11/siddhartha.jpg'
-        }
-
-      ];
-      this.userData = data;
-    }
+      }
   }
 }
 </script>
