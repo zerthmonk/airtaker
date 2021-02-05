@@ -3,6 +3,7 @@
 version: '3'
 
 services:
+
   meta-db:
     image: postgres:latest
     restart: unless-stopped
@@ -18,8 +19,9 @@ services:
       dockerfile: frontend/Dockerfile
     volumes:
       - ./frontend/src:/app/src
+      - ./frontend/dist:/app/dist
     command: >
-      sh -c "npm run dev"
+      sh -c "npm run serve"
     ports:
       - 8080:8080
 

@@ -2,8 +2,8 @@
 !.gitignore
 !.gitkeep
 !__init__.py
-#backend/bemeta/core/tests/testdata/*
-backend/static/*
+backend/bemeta/static/*
+backend/bemeta/core/static/*
 
 #self
 .idea/

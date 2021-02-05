@@ -16,6 +16,7 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please upgrade your browser to improve your experience.</p>
     <![endif]-->
     <div id="app"></div>
-    <script src="/frontend/dist/build.js"></script>
+    {% load static %}
+    <script src="{% static 'build.js' %}"></script>
   </body>
 </html>

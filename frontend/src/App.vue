@@ -1,10 +1,13 @@
 <template>
   <div class="container">
-    <user-profile
-      v-for="(user, index) in userData"
-      :key="index"
-      :user="user"
-      ></user-profile>
+    <div  v-if="userData.length">
+      <user-profile
+        v-for="(user, index) in userData"
+        :key="index"
+        :user="user"
+        ></user-profile>
+    </div>
+    <p v-else>data loading...</p>
   </div>
 </template>
 
@@ -35,12 +38,12 @@ export default {
       axios.get(`${BACKEND_URL}/profiles`)
         .then(response => {
           if (response.data.error) { throw response.data.error };
-          this.userData = response.data;
+          this.userData = response.data.result;
         })
         .catch (errorMessage => {
           console.error(errorMessage);
         })
-      }
+      },
   }
 }
 </script>

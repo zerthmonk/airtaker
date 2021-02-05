@@ -16,5 +16,3 @@ def profile(*args, **kwargs):
             return JsonResponse({'result': data})
     except Exception as e:
         return JsonResponse({'error': f'{e}'})
-
-
