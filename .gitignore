@@ -1,9 +1,10 @@
 #exclude
+backend/bemeta/static/*
+backend/bemeta/core/static/*.js
 !.gitignore
 !.gitkeep
 !__init__.py
-backend/bemeta/static/*
-backend/bemeta/core/static/*
+
 
 #self
 .idea/
