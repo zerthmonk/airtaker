@@ -31,23 +31,27 @@ class AirBender(object):
     def save(self) -> None:
         """Upsert records from fetched payload"""
         for item in self.parsed:
-            photo = self.save_photo(item.get('photo'))
+            try:
+                photo = self.save_photo(item['photo'])
 
-            params = {
-                'id': item['id'],
-                'name': item['name'],
-                'photo': photo
-            }
-            # get object or create new record.
-            # note: get_or_create returns tuple(obj, bool)
-            # https://docs.djangoproject.com/en/3.1/ref/models/querysets/
-            obj, created = models.Therapist.objects.get_or_create(pk=item['id'],
-                                                                  defaults=params)
-            if not created:
-                # record exists, updating
-                models.Therapist.objects.filter(id=obj.id).update(**params)
-            # update methods anyway
-            self.update_methods(obj, item.get('methods'))
+                params = {
+                    'id': item['id'],
+                    'name': item['name'],
+                    'photo': photo
+                }
+                # get object or create new record.
+                # note: get_or_create returns tuple(obj, bool)
+                # https://docs.djangoproject.com/en/3.1/ref/models/querysets/
+                obj, created = models.Therapist.objects.get_or_create(pk=item['id'],
+                                                                      defaults=params)
+                if not created:
+                    # record exists, updating
+                    models.Therapist.objects.filter(id=obj.id).update(**params)
+                # update methods anyway
+                self.update_methods(obj, item.get('methods'))
+            except Exception as e:
+                logging.exception(f'{item} cannot be saved: ')
+                continue
         logging.info(f'SAVE PARSED: at {self.timestamp}')
 
     def parse_item(self, item: dict) -> dict:
