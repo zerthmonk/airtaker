@@ -1,0 +1,95 @@
+<template>
+  <div class="container">
+    <user-profile
+      v-for="(user, index) in userData"
+      :key="index"
+      :user="user"
+      ></user-profile>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+import UserProfile from './components/UserProfile.vue';
+
+// .env for JS not mastered still
+const BACKEND_URL = 'http://127.0.0.1:8000/api/';
+
+export default {
+  components: {
+    UserProfile,
+  },
+
+  data() {
+    return {
+      userData: []
+    }
+  },
+
+  mounted() {
+    this.testData();
+    console.log(this.userData);
+  },
+
+  methods: {
+    getData() {
+      axios.get(`${BACKEND_URL}/profiles`)
+        .then(response => {
+          if (response.data.error) { throw response.data.error };
+          this.userData = response.data;
+        })
+        .catch (errorMessage => {
+          console.error(errorMessage);
+        })
+      },
+
+    testData() {
+      const data = [
+        {
+          name: 'Dr. Siddhartha',
+          methods: ['test1', 'test2', 'test3'],
+          photo: 'https://tricycle.org/beginners/wp-content/uploads/sites/2/2018/11/siddhartha.jpg'
+        },
+        {
+          name: 'Dr. Siddhartha',
+          methods: ['test1', 'test2', 'test3'],
+          photo: 'https://tricycle.org/beginners/wp-content/uploads/sites/2/2018/11/siddhartha.jpg'
+        }
+
+      ];
+      this.userData = data;
+    }
+  }
+}
+</script>
+
+<style lang="scss">
+// CSS frameworks not mentioned in task description, so all styles are home-made :)
+@import 'styles/variables';
+
+html, body {
+  padding: 0;
+  margin: 0;
+  color: $main-color;
+  background-color: $bg-light;
+}
+
+.container {
+  max-width: $max-width;
+  margin: auto;
+  padding: 24px 0;
+}
+
+.column {
+  padding: 16px;
+}
+
+.is-one-third {
+  width: 33%;
+}
+
+.is-two-third {
+  width: 66%;
+}
+
+</style>

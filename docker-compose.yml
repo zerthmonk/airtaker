@@ -12,5 +12,17 @@ services:
     ports:
       - $DB_PORT:5432
 
+  front-builder:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    volumes:
+      - ./frontend/src:/app/src
+    command: >
+      sh -c "npm run dev"
+    ports:
+      - 8080:8080
+
+
 volumes:
   demo_db_volume: {}
