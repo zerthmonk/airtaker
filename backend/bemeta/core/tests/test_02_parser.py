@@ -8,31 +8,8 @@ from core import models
 from core.airbender import AirBender
 from core.helpers import DotDict
 
-
-TEST_DATA_ROOT = os.path.join(os.path.dirname(__file__), 'testdata')
-TEST_JSON_PATH = os.path.join(TEST_DATA_ROOT, 'table.json')
-
-
-def get_test_data(file_path: str):
-    with open(file_path) as fh:
-        return json.loads(fh.read())
-
-
-def get_expected(field: str = None) -> dict:
-    data = {
-        'id': 'rec59sIJUxkEHMLtT',
-        'name': 'Георгий',
-        'photo': {
-            'id': 'att9KnVSSmHaLJNUm',
-            'url': 'https://dl.airtable.com/.attachments/c15cce685652a0670beb0f4bb2485041/0d0720fe/3.jpg',
-        },
-        'methods': [
-            'Психоанализ',
-            'Музыкотерапия',
-            'Сказкотерапия'
-        ]
-    }
-    return data.get(field) if field else data
+from core.tests.config import TEST_DATA_ROOT, TEST_JSON_PATH, \
+    get_test_data, get_expected, AirBenderSetup
 
 
 class DotDictTestCase(TestCase):
@@ -49,14 +26,6 @@ class DotDictTestCase(TestCase):
     def test_dotdict(self):
         for k, v in self.test_data.items():
             self.assertEqual(getattr(self.dot, k), v)
-
-
-class AirBenderSetup(TestCase):
-
-    def setUp(self):
-        self.timestamp = timezone.now()
-        self.data = get_test_data(TEST_JSON_PATH)
-        self.parser = AirBender(self.data, self.timestamp)
 
 
 class SaveDataTestCase(AirBenderSetup):
@@ -98,7 +67,7 @@ class SyncDataTestCase(AirBenderSetup):
     def test_parser_update(self):
         """test existed local record is updated by remote table record values"""
         instance = models.Therapist.objects.get(pk=get_expected('id'))
-        instance_method_set = sorted([m.pk for m in instance.methods.all()])
+        instance_method_set = instance.method_names
         expected = self.expected
 
         self.assertEqual(instance.id, expected['id'])
