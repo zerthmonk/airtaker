@@ -17,6 +17,8 @@ class AirBender(object):
         methods='Методы'
     ))
 
+    saved = []
+
     def __init__(self, payload: List[dict], timestamp: str):
         self.payload = payload
         self.timestamp = timestamp
@@ -30,24 +32,30 @@ class AirBender(object):
 
     def save(self) -> None:
         """Upsert records from fetched payload"""
-        for item in self.parsed:
-            photo = self.save_photo(item.get('photo'))
+        parsed = [p for p in self.parsed if p]  # ugly hotfix, should be refactored, ofc
+        for item in parsed:
+            try:
+                photo = self.save_photo(item['photo'])
 
-            params = {
-                'id': item['id'],
-                'name': item['name'],
-                'photo': photo
-            }
-            # get object or create new record.
-            # note: get_or_create returns tuple(obj, bool)
-            # https://docs.djangoproject.com/en/3.1/ref/models/querysets/
-            obj, created = models.Therapist.objects.get_or_create(pk=item['id'],
-                                                                  defaults=params)
-            if not created:
-                # record exists, updating
-                models.Therapist.objects.filter(id=obj.id).update(**params)
-            # update methods anyway
-            self.update_methods(obj, item.get('methods'))
+                params = {
+                    'id': item['id'],
+                    'name': item['name'],
+                    'photo': photo
+                }
+                # get object or create new record.
+                # note: get_or_create returns tuple(obj, bool)
+                # https://docs.djangoproject.com/en/3.1/ref/models/querysets/
+                obj, created = models.Therapist.objects.get_or_create(pk=item['id'],
+                                                                      defaults=params)
+                if not created:
+                    # record exists, updating
+                    models.Therapist.objects.filter(id=obj.id).update(**params)
+                # update methods anyway
+                self.update_methods(obj, item.get('methods'))
+                self.saved.append(item)
+            except Exception:
+                logging.exception(f'{item} cannot be saved: ')
+                continue
         logging.info(f'SAVE PARSED: at {self.timestamp}')
 
     def parse_item(self, item: dict) -> dict:
@@ -77,9 +85,8 @@ class AirBender(object):
                 if not v:
                     raise AttributeError(f'{k} is missing')
             return result
-        except AttributeError:
+        except AttributeError or Exception:
             logging.exception(f'when parsing {item}: ')
-            return {}
 
     def parse_photo(self, data: dict, field_list: list) -> dict:
         """Parse photo data"""
@@ -120,13 +127,13 @@ class AirBender(object):
         """Cleanup local records not presented in remote Airtable"""
         try:
             models.Therapist.cleanup_other_than(model=models.Therapist,
-                                                ids=(item['id'] for item in self.parsed))
+                                                ids=(item['id'] for item in self.saved))
 
             models.Photo.cleanup_other_than(model=models.Photo,
-                                            ids=(item['photo']['id'] for item in self.parsed))
+                                            ids=(item['photo']['id'] for item in self.saved))
 
             models.TherapyMethod.cleanup_other_than(model=models.TherapyMethod,
-                                                    ids=set(flatten_list(item['methods'] for item in self.parsed)))
+                                                    ids=set(flatten_list(item['methods'] for item in self.saved)))
             logging.debug('sync cleanup complete')
         except Exception:
             logging.exception('when cleanup: ')
