@@ -31,7 +31,7 @@ class AirBender(object):
     def save(self) -> None:
         """Upsert records from fetched payload"""
         for item in self.parsed:
-            photo = self.save_photo(item['photo'])
+            photo = self.save_photo(item.get('photo'))
 
             params = {
                 'id': item['id'],
@@ -100,6 +100,8 @@ class AirBender(object):
 
     @staticmethod
     def save_photo(photo: dict) -> models.Photo:
+        if not photo:
+            return
         obj, created = models.Photo.objects.get_or_create(pk=photo['id'],
                                                           defaults={**photo})
         if created:
